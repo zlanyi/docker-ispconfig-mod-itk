@@ -94,7 +94,7 @@ RUN apt-get -y install php5-xcache
 RUN apt-get -y install pure-ftpd-common pure-ftpd-mysql
 RUN sed -i 's/VIRTUALCHROOT=false/VIRTUALCHROOT=true/g'  /etc/default/pure-ftpd-common
 RUN sed -i 's/STANDALONE_OR_INETD=inetd/STANDALONE_OR_INETD=standalone/g'  /etc/default/pure-ftpd-common
-RUN sed -i 's/UPLOADSCRIPT=/UPLOADSCRIPT=/etc/pure-ftpd/clamav_check.sh/g'  /etc/default/pure-ftpd-common
+RUN sed -i 's/UPLOADSCRIPT=/UPLOADSCRIPT=\/etc\/pure-ftpd\/clamav_check.sh/g'  /etc/default/pure-ftpd-common
 ADD ./etc/pure-ftpd/clamav_check.sh /etc/pure-ftpd/clamav_check.sh
 RUN echo 1 > /etc/pure-ftpd/conf/TLS
 RUN mkdir -p /etc/ssl/private/
