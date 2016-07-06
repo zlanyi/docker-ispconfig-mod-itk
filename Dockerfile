@@ -15,12 +15,12 @@
 #
 # Dockerfile for ISPConfig with MariaDB database
 #
-# https://www.howtoforge.com/tutorial/perfect-server-debian-8-jessie-apache-bind-dovecot-ispconfig-3/
+# https://www.howtoforge.com/tutorial/perfect-server-debian-8-4-jessie-apache-bind-dovecot-ispconfig-3-1
 #
 
 FROM debian:jessie
 
-MAINTAINER Jeremie Robert <appydo@gmail.com> version: 0.2
+MAINTAINER Zoltan Lanyi <zoltan.lanyi@gmail.com> version: 0.1
 
 # Let the container know that there is no tty
 ENV DEBIAN_FRONTEND noninteractive
@@ -91,7 +91,7 @@ RUN apt-get -y install php5-xcache
 #RUN ln -s /etc/mailman/apache.conf /etc/apache2/conf-enabled/mailman.conf
 
 # --- 14 Install PureFTPd And Quota
-RUN apt-get -y install pure-ftpd-common pure-ftpd-mysql quota quotatool
+RUN apt-get -y install pure-ftpd-common pure-ftpd-mysql
 RUN sed -i 's/VIRTUALCHROOT=false/VIRTUALCHROOT=true/g'  /etc/default/pure-ftpd-common
 RUN sed -i 's/STANDALONE_OR_INETD=inetd/STANDALONE_OR_INETD=standalone/g'  /etc/default/pure-ftpd-common
 RUN sed -i 's/UPLOADSCRIPT=/UPLOADSCRIPT=/etc/pure-ftpd/clamav_check.sh/g'  /etc/default/pure-ftpd-common
@@ -106,7 +106,7 @@ RUN mkdir -p /etc/ssl/private/
 RUN apt-get -y install bind9 dnsutils
 
 # --- 16 Install Vlogger, Webalizer, And AWStats
-RUN apt-get -y install vlogger webalizer awstats geoip-database libclass-dbi-mysql-perl
+RUN apt-get -y install vlogger awstats geoip-database libclass-dbi-mysql-perl
 ADD etc/cron.d/awstats /etc/cron.d/
 
 # --- 17 Install Jailkit
@@ -123,9 +123,15 @@ RUN echo "ignoreregex =" >> /etc/fail2ban/filter.d/postfix-sasl.conf
 RUN service fail2ban restart
 
 # --- 19 Install RoundCube
-RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
-RUN apt-get -qq update
-RUN apt-get -y install roundcube roundcube-core roundcube-mysql roundcube-plugins
+RUN mkdir /opt/roundcube && cd /opt/roundcube
+RUN wget https://downloads.sourceforge.net/project/roundcubemail/roundcubemail/1.1.3/roundcubemail-1.1.3-complete.tar.gz && tar xfz roundcubemail-1.1.3-complete.tar.gz
+RUN mv roundcubemail-1.1.3/* . && mv roundcubemail-1.1.3/.htaccess . && rm -rf roundcubemail-1.1.* && chown -R www-data:www-data /opt/roundcube
+RUN mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE roundcubemail; GRANT ALL PRIVILEGES ON roundcubemail.* TO roundcube@localhost IDENTIFIED BY 'secretpassword';flush privileges;"
+RUN mysql --defaults-file=/etc/mysql/debian.cnf roundcubemail < /opt/roundcube/SQL/mysql.initial.sql
+RUN cd /opt/roundcube/config && cp -pf config.inc.php.sample config.inc.php
+RUN sed -i 's/$config['db_dsnw'] = 'mysql://roundcube:pass@localhost\/roundcubemail';/$config['db_dsnw'] = 'mysql://roundcube:secretpassword@localhost\/roundcubemail';/g' /opt/roundcube/config
+ADD ./etc/apache2/conf-enabled/roundcube.conf /etc/apache2/conf-enabled/roundcube.conf
+RUN service apache2 restart
 
 # --- 20 Install ISPConfig 3
 # RUN cd /tmp && cd . && wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz
