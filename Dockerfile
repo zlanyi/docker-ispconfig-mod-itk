@@ -125,7 +125,7 @@ RUN service fail2ban restart
 # --- 19 Install RoundCube
 RUN mkdir /opt/roundcube && cd /opt/roundcube
 RUN wget https://downloads.sourceforge.net/project/roundcubemail/roundcubemail/1.1.3/roundcubemail-1.1.3-complete.tar.gz && tar xfz roundcubemail-1.1.3-complete.tar.gz
-RUN mv roundcubemail-1.1.3/* . && mv roundcubemail-1.1.3/.htaccess . && rm -rf roundcubemail-1.1.* && chown -R www-data:www-data /opt/roundcube
+RUN mv roundcubemail-1.1.3/* . && mv roundcubemail-1.1.3/.htaccess . && rmdir roundcubemail-1.1.3 && rm roundcubemail-1.1.3-complete.tar.gz && chown -R www-data:www-data /opt/roundcube
 RUN mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE roundcubemail; GRANT ALL PRIVILEGES ON roundcubemail.* TO roundcube@localhost IDENTIFIED BY 'secretpassword';flush privileges;"
 RUN mysql --defaults-file=/etc/mysql/debian.cnf roundcubemail < /opt/roundcube/SQL/mysql.initial.sql
 RUN cd /opt/roundcube/config && cp -pf config.inc.php.sample config.inc.php
