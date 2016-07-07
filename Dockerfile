@@ -101,24 +101,23 @@ RUN service fail2ban restart
 
 # --- 14 Install RoundCube
 RUN mkdir /opt/roundcube && cd /opt/roundcube && wget https://downloads.sourceforge.net/project/roundcubemail/roundcubemail/1.1.3/roundcubemail-1.1.3-complete.tar.gz && tar xfz roundcubemail-1.1.3-complete.tar.gz && mv roundcubemail-1.1.3/* . && mv roundcubemail-1.1.3/.htaccess . && rmdir roundcubemail-1.1.3 && rm roundcubemail-1.1.3-complete.tar.gz && chown -R www-data:www-data /opt/roundcube
-RUN mysql --defaults-file=/etc/mysql/debian.cnf -e "CREATE DATABASE roundcubemail; GRANT ALL PRIVILEGES ON roundcubemail.* TO roundcube@localhost IDENTIFIED BY 'secretpassword';flush privileges;"
-RUN mysql --defaults-file=/etc/mysql/debian.cnf roundcubemail < /opt/roundcube/SQL/mysql.initial.sql
+RUN mysql -uroot -ppass -e "CREATE DATABASE roundcubemail; GRANT ALL PRIVILEGES ON roundcubemail.* TO roundcube@localhost IDENTIFIED BY 'secretpassword';flush privileges;"
+RUN mysql -uroot -ppass roundcubemail < /opt/roundcube/SQL/mysql.initial.sql
 RUN cd /opt/roundcube/config && cp -pf config.inc.php.sample config.inc.php
 RUN sed -i 's/$config['db_dsnw'] = 'mysql://roundcube:pass@localhost\/roundcubemail';/$config['db_dsnw'] = 'mysql://roundcube:secretpassword@localhost\/roundcubemail';/g' /opt/roundcube/config
 ADD ./etc/apache2/conf-enabled/roundcube.conf /etc/apache2/conf-enabled/roundcube.conf
 RUN service apache2 restart
 
 # --- 15 Install ISPConfig 3
-# RUN cd /tmp && cd . && wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz
-RUN cd /tmp && cd . && wget -O ISPConfig-3.tar.gz http://www.ispconfig.org/downloads/ISPConfig-3.0.5.4p8.tar.gz
-RUN cd /tmp && tar xfz ISPConfig-3.tar.gz
+# Stable release
+#RUN cd /tmp && wget -O ISPConfig-3.tar.gz wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz && tar xfz ISPConfig-3.tar.gz
+# Beta release
+RUN cd /tmp &&  wget -O ISPConfig-3.1-beta.tar.gz  https://git.ispconfig.org/ispconfig/ispconfig3/repository/archive.tar.gz?ref=stable-3.1 && tar xzf ISPConfig-3.1-beta.tar.gz -C ./ispconfig3-stable-3.1
 RUN service mysql restart
-# RUN ["/bin/bash", "-c", "cat /tmp/install_ispconfig.txt | php -q /tmp/ispconfig3_install/install/install.php"]
 # RUN sed -i -e"s/^bind-address\s*=\s*127.0.0.1/bind-address = 0.0.0.0/" /etc/mysql/my.cnf
 # RUN sed -i -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 100M/g" /etc/php5/fpm/php.ini
 # RUN sed -i -e "s/post_max_size\s*=\s*8M/post_max_size = 100M/g" /etc/php5/fpm/php.ini
 
-# ADD ./etc/mysql/my.cnf /etc/mysql/my.cnf
 ADD ./etc/postfix/master.cf /etc/postfix/master.cf
 ADD ./etc/clamav/clamd.conf /etc/clamav/clamd.conf
 
@@ -130,20 +129,16 @@ EXPOSE 20 21 22 53/udp 53/tcp 80 443 953 8080 30000 30001 30002 30003 30004 3000
 ADD ./start.sh /start.sh
 ADD ./supervisord.conf /etc/supervisor/supervisord.conf
 ADD ./etc/cron.daily/sql_backup.sh /etc/cron.daily/sql_backup.sh
-ADD ./autoinstall.ini /tmp/ispconfig3_install/install/autoinstall.ini
+ADD ./autoinstall.ini /tmp/ispconfig3-stable-3.1/install/autoinstall.ini
 RUN chmod 755 /start.sh
 RUN mkdir -p /var/run/sshd
 RUN mkdir -p /var/log/supervisor
 RUN mv /bin/systemctl /bin/systemctloriginal
 ADD ./bin/systemctl /bin/systemctl
 
-RUN sed -i "s/^hostname=server1.example.com$/hostname=$HOSTNAME/g" /tmp/ispconfig3_install/install/autoinstall.ini
-# RUN mysqladmin -u root password pass
-RUN service mysql restart && php -q /tmp/ispconfig3_install/install/install.php --autoinstall=/tmp/ispconfig3_install/install/autoinstall.ini
-ADD ./ISPConfig_Clean-3.0.5 /tmp/ISPConfig_Clean-3.0.5
-RUN cp -r /tmp/ISPConfig_Clean-3.0.5/interface /usr/local/ispconfig/
-RUN service mysql restart && mysql -ppass < /tmp/ISPConfig_Clean-3.0.5/sql/ispc-clean.sql
-# Directory for dump SQL backup
+RUN sed -i "s/^hostname=server1.example.com$/hostname=$HOSTNAME/g" /tmp/ispconfig3-stable-3.1/install/autoinstall.ini
+RUN service mysql restart && php -q /tmp/ispconfig3-stable-3.1/install/install.php --autoinstall=/tmp/ispconfig3-stable-3.1/install/autoinstall.ini
+RUN service mysql restart
 RUN mkdir -p /var/backup/sql
 
 VOLUME ["/var/www/","/var/mail/","/var/backup/","/var/lib/mysql","/etc/","/usr/local/ispconfig","/var/log/"]
