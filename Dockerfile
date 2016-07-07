@@ -35,6 +35,7 @@ RUN echo 'mariadb-server mariadb-server/root_password password pass' | debconf-s
 RUN echo 'mariadb-server mariadb-server/root_password_again password pass' | debconf-set-selections
 RUN apt-get -y install postfix postfix-mysql postfix-doc mariadb-client mariadb-server openssl getmail4 rkhunter binutils dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve dovecot-lmtpd sudo
 ADD ./etc/postfix/master.cf /etc/postfix/master.cf
+RUN sed -i -e"s/^bind-address\s*=\s*127.0.0.1/bind-address = 0.0.0.0/" /etc/mysql/my.cnf
 RUN service postfix restart
 RUN service mysql restart
 
@@ -77,7 +78,7 @@ RUN echo 1 > /etc/pure-ftpd/conf/TLS
 RUN mkdir -p /etc/ssl/private/
 # RUN openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem
 # RUN chmod 600 /etc/ssl/private/pure-ftpd.pem
-# RUN service pure-ftpd-mysql restart
+RUN service pure-ftpd-mysql restart
 
 # --- 10 Install BIND DNS Server
 RUN apt-get -y install bind9 dnsutils
@@ -101,12 +102,13 @@ RUN service fail2ban restart
 
 # --- 14 Install RoundCube
 RUN mkdir /opt/roundcube && cd /opt/roundcube && wget https://downloads.sourceforge.net/project/roundcubemail/roundcubemail/1.1.3/roundcubemail-1.1.3-complete.tar.gz && tar xfz roundcubemail-1.1.3-complete.tar.gz && mv roundcubemail-1.1.3/* . && mv roundcubemail-1.1.3/.htaccess . && rmdir roundcubemail-1.1.3 && rm roundcubemail-1.1.3-complete.tar.gz && chown -R www-data:www-data /opt/roundcube
-RUN mysql -uroot -ppass -e "CREATE DATABASE roundcubemail; GRANT ALL PRIVILEGES ON roundcubemail.* TO roundcube@localhost IDENTIFIED BY 'secretpassword';flush privileges;"
-RUN mysql -uroot -ppass roundcubemail < /opt/roundcube/SQL/mysql.initial.sql
+RUN service mysql restart && mysql -h localhost -uroot -ppass -e "CREATE DATABASE roundcubemail; GRANT ALL PRIVILEGES ON roundcubemail.* TO roundcube@localhost IDENTIFIED BY 'secretpassword';flush privileges;"
+RUN service mysql restart && mysql -h localhost -uroot -ppass roundcubemail < /opt/roundcube/SQL/mysql.initial.sql
 RUN cd /opt/roundcube/config && cp -pf config.inc.php.sample config.inc.php
 RUN sed -i 's/$config['db_dsnw'] = 'mysql://roundcube:pass@localhost\/roundcubemail';/$config['db_dsnw'] = 'mysql://roundcube:secretpassword@localhost\/roundcubemail';/g' /opt/roundcube/config
 ADD ./etc/apache2/conf-enabled/roundcube.conf /etc/apache2/conf-enabled/roundcube.conf
 RUN service apache2 restart
+RUN service mysql restart
 
 # --- 15 Install ISPConfig 3
 # Stable release
@@ -114,7 +116,6 @@ RUN service apache2 restart
 # Beta release
 RUN cd /tmp &&  wget -O ISPConfig-3.1-beta.tar.gz  https://git.ispconfig.org/ispconfig/ispconfig3/repository/archive.tar.gz?ref=stable-3.1 && tar xzf ISPConfig-3.1-beta.tar.gz -C ./ispconfig3-stable-3.1
 RUN service mysql restart
-# RUN sed -i -e"s/^bind-address\s*=\s*127.0.0.1/bind-address = 0.0.0.0/" /etc/mysql/my.cnf
 # RUN sed -i -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 100M/g" /etc/php5/fpm/php.ini
 # RUN sed -i -e "s/post_max_size\s*=\s*8M/post_max_size = 100M/g" /etc/php5/fpm/php.ini
 
