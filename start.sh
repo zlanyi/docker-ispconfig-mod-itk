@@ -3,11 +3,11 @@
 # echo "ROOT password : $DOCKERPASS"
 # echo "root:pass"|chpasswd
 # sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
-if [ ! -z "$DEFAULT_EMAIL_HOST" ]; then
-sed -i "s/^\(DEFAULT_EMAIL_HOST\) = .*$/\1 = '$MAILMAN_EMAIL_HOST'/g" /etc/mailman/mm_cfg.py
-newlist -q mailman $(MAILMAN_EMAIL) $(MAILMAN_PASS)
-newaliases
-fi
+#if [ ! -z "$DEFAULT_EMAIL_HOST" ]; then
+#sed -i "s/^\(DEFAULT_EMAIL_HOST\) = .*$/\1 = '$MAILMAN_EMAIL_HOST'/g" /etc/mailman/mm_cfg.py
+#newlist -q mailman $(MAILMAN_EMAIL) $(MAILMAN_PASS)
+#newaliases
+#fi
 echo "START"
 if [ ! -z "$LANGUAGE" ]; then
 sed -i "s/^language=en$/language=$LANGUAGE/g" /tmp/ispconfig3_install/install/autoinstall.ini

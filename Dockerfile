@@ -79,7 +79,6 @@ RUN echo 1 > /etc/pure-ftpd/conf/CallUploadScript
 RUN mkdir -p /etc/ssl/private/
 RUN openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -subj "/C=DE/ST=Karlsruhe/L=Baden-Wuerttemberg/O=IT/CN=$HOSTNAME" -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem
 RUN chmod 600 /etc/ssl/private/pure-ftpd.pem
-RUN service pure-ftpd-mysql restart
 
 # --- 10 Install BIND DNS Server
 RUN apt-get -y install bind9 dnsutils
@@ -117,8 +116,6 @@ RUN service mysql restart
 # Beta release
 RUN cd /tmp &&  wget -O ISPConfig-3.1-beta.tar.gz  https://git.ispconfig.org/ispconfig/ispconfig3/repository/archive.tar.gz?ref=stable-3.1 && tar xzf ISPConfig-3.1-beta.tar.gz -C ./ispconfig3-stable-3.1
 RUN service mysql restart
-# RUN sed -i -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 100M/g" /etc/php5/fpm/php.ini
-# RUN sed -i -e "s/post_max_size\s*=\s*8M/post_max_size = 100M/g" /etc/php5/fpm/php.ini
 
 ADD ./etc/postfix/master.cf /etc/postfix/master.cf
 ADD ./etc/clamav/clamd.conf /etc/clamav/clamd.conf
