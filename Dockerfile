@@ -69,7 +69,7 @@ RUN chmod a+x ./certbot-auto
 #RUN ln -s /etc/mailman/apache.conf /etc/apache2/conf-enabled/mailman.conf
 
 # --- 9 Install PureFTPd And Quota (Not on Docker, not yet supported)
-RUN apt-get -y install pure-ftpd-common pure-ftpd-mysql
+RUN apt-get -y install pure-ftpd-common pure-ftpd-mysql quota quotatool
 RUN sed -i 's/VIRTUALCHROOT=false/VIRTUALCHROOT=true/g'  /etc/default/pure-ftpd-common
 RUN sed -i 's/STANDALONE_OR_INETD=inetd/STANDALONE_OR_INETD=standalone/g'  /etc/default/pure-ftpd-common
 RUN sed -i 's/UPLOADSCRIPT=/UPLOADSCRIPT=\/etc\/pure-ftpd\/clamav_check.sh/g'  /etc/default/pure-ftpd-common
