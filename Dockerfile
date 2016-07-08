@@ -76,8 +76,8 @@ RUN sed -i 's/UPLOADSCRIPT=/UPLOADSCRIPT=\/etc\/pure-ftpd\/clamav_check.sh/g'  /
 ADD ./etc/pure-ftpd/clamav_check.sh /etc/pure-ftpd/clamav_check.sh
 RUN echo 1 > /etc/pure-ftpd/conf/TLS
 RUN mkdir -p /etc/ssl/private/
-# RUN openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem
-# RUN chmod 600 /etc/ssl/private/pure-ftpd.pem
+RUN openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -subj "/C=DE/ST=Karlsruhe/L=Baden-Wuerttemberg/O=IT/CN=$HOSTNAME" -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem
+RUN chmod 600 /etc/ssl/private/pure-ftpd.pem
 RUN service pure-ftpd-mysql restart
 
 # --- 10 Install BIND DNS Server
