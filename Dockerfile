@@ -106,7 +106,7 @@ RUN service mysql restart && mysql -h localhost -uroot -ppass -e "CREATE DATABAS
 RUN service mysql restart && mysql -h localhost -uroot -ppass roundcubemail < /opt/roundcube/SQL/mysql.initial.sql
 RUN cd /opt/roundcube/config && cp -pf config.inc.php.sample config.inc.php
 RUN sed -i "s/\$config[\'db_dsnw\'] = \'mysql:\/\/roundcube:pass@localhost\/roundcubemail';/\$config[\'db_dsnw\'] = \'mysql:\/\/roundcube:secretpassword@localhost\/roundcubemail\';/g" /opt/roundcube/config/config.inc.php
-ADD ./etc/apache2/conf-enabled/roundcube.conf /etc/apache2/conf-enabled/roundcube.conf
+ADD ./etc/apache2/roundcube.conf /etc/apache2/conf-enabled/roundcube.conf
 RUN service apache2 restart
 RUN service mysql restart
 
