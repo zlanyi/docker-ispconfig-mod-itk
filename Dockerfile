@@ -114,7 +114,7 @@ RUN service mysql restart
 # Stable release
 #RUN cd /tmp && wget -O ISPConfig-3.tar.gz wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz && tar xfz ISPConfig-3.tar.gz
 # Beta release
-RUN cd /tmp &&  wget -O ISPConfig-3.1-beta.tar.gz  https://git.ispconfig.org/ispconfig/ispconfig3/repository/archive.tar.gz?ref=stable-3.1 && tar xzf ISPConfig-3.1-beta.tar.gz -C ./ispconfig3-stable-3.1
+RUN cd /tmp &&  wget -O ISPConfig-3.1-beta.tar.gz  https://git.ispconfig.org/ispconfig/ispconfig3/repository/archive.tar.gz?ref=stable-3.1 && tar xzf ISPConfig-3.1-beta.tar.gz && mv ispconfig3-stable-3.1-* ispconfig3-stable-3.1
 RUN service mysql restart
 
 ADD ./etc/postfix/master.cf /etc/postfix/master.cf
